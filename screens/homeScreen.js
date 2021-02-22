@@ -1,67 +1,100 @@
 import * as React from 'react';
 import { useContext, Component} from 'react'
-import {View, StyleSheet, Text, Button} from 'react-native';
+import {View, StyleSheet, Text} from 'react-native';
 import {FilledButton} from '../components/FilledButton';
 import { AuthContext } from '../navigaiton/AuthProvider';
 import firestore from '@react-native-firebase/firestore';
 import { Input, ListItem } from 'react-native-elements';
+import { ScrollView } from 'react-native-gesture-handler';
 
-class ShowData extends Component { 
+
+class addData extends Component {
+
   constructor() {
     super();
 
-    this.fireStoreData = firestore().collection("Users");
+    this.usersCollectionRef = firestore().collection('Users');
     this.state = {
-      userArr: []
+      question: "",
+      choice1: "",
+      choice2: "",
+      choice3: "",
     }
-  }
-
-  componentDidMount() {
-    this.unsubscribe = this.fireStoreData.onSnapshot(this.getCollection);
-  }
-
-  componentWillUnmount(){
-    this.unsubscribe();
-  }
-  getCollection = (querySnapshot) => {
-    const userArr = [];
-    querySnapshot.forEach((res) => {
-      const {Name, Score} = res.data();
-      userArr.push({
-        key: res.id,
-        res,
-        Name,
-        Score
-      })
-    })
-    this.setState({
-      userArr
-    })
-  }
-  render(){
-    return(
-      <View>
-        <Text> Hi Test pull data </Text>
-        {
-          this.state.userArr.map((item, i) => {
-            return (
-                <ListItem
-                  key={i}
-                  bottomDivider>
-                    <ListItem.Content>
-                      <ListItem.Title>{item.Name}</ListItem.Title>
-                      <Button title={item.Name}/>
-                    </ListItem.Content>
-
-                </ListItem>
-            );
-          })
-        }
-      </View>
-    )
-  }
 
 }
+
+   inputValueUpdate = (val, prop) => {
+    const state = this.state;
+    state[prop] = val;
+    this.setState(state);
+}
+
+ storeUser() {
+        this.usersCollectionRef.add({
+          question: this.state.question,
+          choice1: this.state.choice1,
+          choice2: this.state.choice2,
+          choice3: this.state.choice3
+        }).then((res) => {
+            this.setState({
+                question: '',
+                choice1: '',
+                choice2: '',
+                choice3: ''
+            })
+        })
+        .catch((err) => {
+            console.log('Error found: ', err);
+            this.setState({
+                isLoading: false
+            })
+        })
+    }
+    render (){
+      return (
+        <ScrollView>
+          <View style={styles.container}>
+  
+  
+  <Input
+     placeholder="Question"
+     leftIcon={{ type: 'font-awesome', name: 'book' }}
+     style={styles}
+     value={this.state.question}
+     onChangeText={(val) => this.inputValueUpdate(val, 'question')}
+    />
+    <Input
+     placeholder="Choice 1"
+     leftIcon={{ type: 'font-awesome', name: 'caret-right' }}
+     style={styles}
+     value={this.state.choice1}
+     onChangeText={(val) => this.inputValueUpdate(val, 'choice1')}
+    />
+    <Input
+     placeholder="Choice 2"
+     leftIcon={{ type: 'font-awesome', name: 'caret-right' }}
+     style={styles}
+     value={this.state.choice2}
+     onChangeText={(val) => this.inputValueUpdate(val, 'choice2')}
+    />
+    <Input
+     placeholder="Choice 3"
+     leftIcon={{ type: 'font-awesome', name: 'caret-right' }}
+     style={styles}
+     value={this.state.choice3}
+     onChangeText={(val) => this.inputValueUpdate(val, 'choice3')}
+    />
+    
+              <FilledButton title={'ADD QUESTION'} style={styles.loginButton} onPress={() => this.storeUser()} />
+              <FilledButton title={'Logout'} style={styles.loginButton} onPress={()=> logout()} />      
+           </View>
+           </ScrollView>
+      )
+    }
+
+  }
+
+
 
 
 const styles = StyleSheet.create({
@@ -86,6 +119,4 @@ const styles = StyleSheet.create({
   
     }
   });
-
-
-  export default ShowData;
+  export default addData;
