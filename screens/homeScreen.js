@@ -1,30 +1,68 @@
 import * as React from 'react';
-import { useContext} from 'react'
-import {View, StyleSheet, Text} from 'react-native';
+import { useContext, Component} from 'react'
+import {View, StyleSheet, Text, Button} from 'react-native';
 import {FilledButton} from '../components/FilledButton';
 import { AuthContext } from '../navigaiton/AuthProvider';
 import firestore from '@react-native-firebase/firestore';
+import { Input, ListItem } from 'react-native-elements';
 
-export default function homeScreen () {
-    const {user, logout} = useContext(AuthContext)
+class ShowData extends Component { 
+  constructor() {
+    super();
 
-
-    const usersCollectionRef = firestore().collection('Users');
-    const addusers = () => {
-      usersCollectionRef.add({
-        Name: 'Taeshinn',
-        Score: 100
-      })
+    this.fireStoreData = firestore().collection("Users");
+    this.state = {
+      userArr: []
     }
-       
-    return (
-        <View style={styles.container}>
-            <Text>Welcome {user.uid}</Text>
-            <FilledButton title={'addUser'} style={styles.loginButton} onPress={addusers} />
-            <FilledButton title={'Logout'} style={styles.loginButton} onPress={()=> logout()} />      
-         </View>
+  }
+
+  componentDidMount() {
+    this.unsubscribe = this.fireStoreData.onSnapshot(this.getCollection);
+  }
+
+  componentWillUnmount(){
+    this.unsubscribe();
+  }
+  getCollection = (querySnapshot) => {
+    const userArr = [];
+    querySnapshot.forEach((res) => {
+      const {Name, Score} = res.data();
+      userArr.push({
+        key: res.id,
+        res,
+        Name,
+        Score
+      })
+    })
+    this.setState({
+      userArr
+    })
+  }
+  render(){
+    return(
+      <View>
+        <Text> Hi Test pull data </Text>
+        {
+          this.state.userArr.map((item, i) => {
+            return (
+                <ListItem
+                  key={i}
+                  bottomDivider>
+                    <ListItem.Content>
+                      <ListItem.Title>{item.Name}</ListItem.Title>
+                      <Button title={item.Name}/>
+                    </ListItem.Content>
+
+                </ListItem>
+            );
+          })
+        }
+      </View>
     )
+  }
+
 }
+
 
 const styles = StyleSheet.create({
     title: {
@@ -50,4 +88,4 @@ const styles = StyleSheet.create({
   });
 
 
-  
+  export default ShowData;
